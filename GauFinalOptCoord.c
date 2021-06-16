@@ -88,7 +88,7 @@ int main(int argc, char const *argv[])
             strncpy(out_f_name, argv[iarg], BUFSIZ);
         else
         {
-            printf("Illegal command argument: \"%s\"\n", argv[iarg]);
+            fprintf(stderr, "Illegal command argument: \"%s\".\n", argv[iarg]);
             exit(EXIT_FAILURE);
         }
     }
@@ -109,13 +109,13 @@ int main(int argc, char const *argv[])
         strcmp(in_f_name + strlen(in_f_name) - strlen(".out"), ".out") && \
         strcmp(in_f_name + strlen(in_f_name) - strlen(".log"), ".log"))
     {
-        puts("Error! The suffix of the input file must be either \".out\" or \".log\".");
+        fprintf(stderr, "Error! The suffix of the input file must be either \".out\" or \".log\".\n");
         exit(EXIT_FAILURE);
     }
     in_f = fopen(in_f_name, "rt");
     if (! in_f)
     {
-        printf("Error! File \"%s\" not found!\n", in_f_name);
+        fprintf(stderr, "Error! File \"%s\" not found.\n", in_f_name);
         exit(EXIT_FAILURE);
     }
     if (! strcmp(out_f_name, "-"))
@@ -127,7 +127,7 @@ int main(int argc, char const *argv[])
             if (strlen(out_f_name) < strlen(".xyz") || \
                 strcmp(out_f_name + strlen(out_f_name) - strlen(".xyz"), ".xyz"))
             {
-                puts("Error! The suffix of the output file must be \".xyz\".");
+                fprintf(stderr, "Error! The suffix of the output file must be \".xyz\".\n");
                 exit(EXIT_FAILURE);
             }
         }
@@ -169,7 +169,7 @@ int main(int argc, char const *argv[])
         atom_index = 0u;
         sscanf(strtok(NULL, splitter), "%u", & atom_index);
         if (atom_index >= num_element_overflow)
-            printf("Atom Index %u overflown, using \"Bq\" as element symbol.", atom_index);
+            fprintf(stderr, "Atom Index %u overflown, using \"Bq\" as element symbol.", atom_index);
         fprintf(out_f, "%1s%-2s%13s", "", atom_index < num_element_overflow ? elements_list[atom_index] : "Bq", "");
         strtok(NULL, splitter); /* atomic type */
         for (index_coord = 0u; index_coord <= 2; ++ index_coord) /* x y z */
