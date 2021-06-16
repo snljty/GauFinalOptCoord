@@ -105,11 +105,11 @@ int main(int argc, char const *argv[])
             ++ in_f_name;
         }
     }
-    if (strlen(in_f_name) < strlen(".xyz") || \
-        strcmp(in_f_name + strlen(in_f_name) - strlen(".xyz"), ".out") && \
-        strcmp(in_f_name + strlen(in_f_name) - strlen(".xyz"), ".log"))
+    if (strlen(in_f_name) < strlen(".out") || \
+        strcmp(in_f_name + strlen(in_f_name) - strlen(".out"), ".out") && \
+        strcmp(in_f_name + strlen(in_f_name) - strlen(".log"), ".log"))
     {
-        puts("Error! The suffix of the input file must be either \".out\" or \".log\"");
+        puts("Error! The suffix of the input file must be either \".out\" or \".log\".");
         exit(EXIT_FAILURE);
     }
     in_f = fopen(in_f_name, "rt");
@@ -118,12 +118,23 @@ int main(int argc, char const *argv[])
         printf("Error! File \"%s\" not found!\n", in_f_name);
         exit(EXIT_FAILURE);
     }
-    if (! strcmp(out_f_name, ""))
-        strcpy(out_f_name, "output.xyz");
-    if (strcmp(out_f_name, "-"))
-        out_f = fopen(out_f_name, "wt");
-    else
+    if (! strcmp(out_f_name, "-"))
         out_f = stdout;
+    else
+    {
+        if (strcmp(out_f_name, ""))
+        {
+            if (strlen(out_f_name) < strlen(".xyz") || \
+                strcmp(out_f_name + strlen(out_f_name) - strlen(".xyz"), ".xyz"))
+            {
+                puts("Error! The suffix of the output file must be \".xyz\".");
+                exit(EXIT_FAILURE);
+            }
+        }
+        else
+            strcpy(out_f_name, "output.xyz");
+        out_f = fopen(out_f_name, "wt");
+    }
 
     for (;;)
     {
