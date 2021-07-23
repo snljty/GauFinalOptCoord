@@ -54,12 +54,14 @@ int main(int argc, char const *argv[])
     unsigned int atom_index = 0;
     unsigned int index_coord = 0u; /* x y z */
     double coor = 0.0;
+    char const coordinate_determine_mark_temp[2][max_marker_len + 1] = {"Input orientation:", "Standard orientation:"};
+    unsigned int index_marker = 0u;
 
     memset(coordinate_determine_mark, 0, (max_marker_len + 1) * sizeof(char));
     memset(in_f_name_buf, 0, (BUFSIZ + 1) * sizeof(char));
     memset(out_f_name, 0, (BUFSIZ + 1) * sizeof(char));
     memset(line, 0, (BUFSIZ + 1) * sizeof(char));
-    strcpy(coordinate_determine_mark, "Input orientation:");
+    strcpy(coordinate_determine_mark, coordinate_determine_mark_temp[index_marker]);
 
     for (iarg = 1u; iarg < argc; ++ iarg)
     {
@@ -69,7 +71,7 @@ int main(int argc, char const *argv[])
             printf("Usage: %s [INPUT] [OUTPUT] [--std]\n", argv[0]);
             puts("");
             puts("If INPUT is omitted, it will be asked interactively.");
-            puts("If OUTPUT is omitted, it will be \"output.xyz\".");
+            puts("If OUTPUT is omitted, it will be the input name with a \".xyz\" suffix instead.");
             puts("If OUTPUT is \"-\", will write to stdout.");
             puts("If \"--std\" or \"-s\" is provided, standard orientation,");
             puts("instead of input orientation, will be used.");
@@ -81,7 +83,10 @@ int main(int argc, char const *argv[])
     for (iarg = 1u; iarg < argc; ++ iarg)
     {
         if (! strcmp(argv[iarg], "--std") || ! strcmp(argv[iarg], "-s"))
-            strcpy(coordinate_determine_mark, "Standard orientation:");
+        {
+            ++ index_marker;
+            strcpy(coordinate_determine_mark, coordinate_determine_mark_temp[index_marker]);
+        }
         else if (! strcmp(in_f_name_buf, ""))
             strncpy(in_f_name_buf, argv[iarg], BUFSIZ);
         else if (! strcmp(out_f_name, ""))
@@ -132,8 +137,16 @@ int main(int argc, char const *argv[])
             }
         }
         else
-            strcpy(out_f_name, "output.xyz");
+        {
+            strcpy(out_f_name, in_f_name);
+            strcpy(out_f_name + strlen(out_f_name) - strlen(".xyz"), ".xyz");
+        }
         out_f = fopen(out_f_name, "wt");
+        if (! out_f)
+        {
+            fprintf(stderr, "Error! Cannot open file \"%s\" for writing.\n", out_f_name);
+            exit(EXIT_FAILURE);
+        }
     }
 
     for (;;)
@@ -146,7 +159,9 @@ int main(int argc, char const *argv[])
             break;
         }
     }
+
     fseek(in_f, 0, SEEK_SET);
+    final_pos = -1;
     for (;;)
     {
         pos = ftell(in_f);
@@ -155,6 +170,31 @@ int main(int argc, char const *argv[])
         if (strstr(line, coordinate_determine_mark))
             final_pos = pos; /* update final position, may not really be 'final'. */
     }
+    if (final_pos < 0)
+    {
+        fprintf(stderr, "Warning! Cannot find \"%s\" in Gaussian output file.\n", \
+            coordinate_determine_mark_temp[index_marker]);
+        index_marker = index_marker + 1 & 1u;
+        fprintf(stderr, "Using \"%s\" instead.\n", \
+            coordinate_determine_mark_temp[index_marker]);
+        fseek(in_f, 0, SEEK_SET);
+        strcpy(coordinate_determine_mark, coordinate_determine_mark_temp[index_marker]);
+        for (;;)
+        {
+            pos = ftell(in_f);
+            if (! fgets(line, BUFSIZ, in_f))
+                break;
+            if (strstr(line, coordinate_determine_mark))
+                final_pos = pos; /* update final position, may not really be 'final'. */
+        }
+        if (final_pos < 0)
+        {
+            fprintf(stderr, "Error! Also cannot find \"%s\" in Gaussian output file.\n", \
+                coordinate_determine_mark_temp[index_marker]);
+            exit(EXIT_FAILURE);
+        }
+    }
+
 
     fseek(in_f, final_pos, SEEK_SET);
     for (i = 0; i < useless_lines; i ++)
@@ -188,7 +228,7 @@ int main(int argc, char const *argv[])
 
     if (argc == 1)
     {
-        puts("File has been saved to \"output.xyz\".");
+        printf("File has been saved to \"%s\"\n.", out_f_name);
         puts("Press <Enter> to exit ...");
         while ((c = getchar()) != '\n' && c != EOF)
             ;
