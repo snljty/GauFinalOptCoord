@@ -49,9 +49,9 @@ int main(int argc, char const *argv[])
     FILE *in_f = NULL, *out_f = NULL;
     long pos = 0, final_pos = 0;
     char line[BUFSIZ + 1] = "";
-    unsigned int num_atoms = 0;
-    unsigned int i = 0;
-    unsigned int atom_index = 0;
+    unsigned int num_atoms = 0u;
+    unsigned int i = 0u;
+    unsigned int atom_index = 0u;
     unsigned int index_coord = 0u; /* x y z */
     double coor = 0.0;
     char const coordinate_determine_mark_temp[2][max_marker_len + 1] = {"Input orientation:", "Standard orientation:"};
@@ -141,26 +141,21 @@ int main(int argc, char const *argv[])
             strcpy(out_f_name, in_f_name);
             strcpy(out_f_name + strlen(out_f_name) - strlen(".xyz"), ".xyz");
         }
-        out_f = fopen(out_f_name, "wt");
-        if (! out_f)
-        {
-            fprintf(stderr, "Error! Cannot open file \"%s\" for writing.\n", out_f_name);
-            exit(EXIT_FAILURE);
-        }
     }
 
+    rewind(in_f);
     for (;;)
     {
         if (! fgets(line, BUFSIZ, in_f))
-            exit(EXIT_FAILURE);
-        if (! strncmp(line, " NAtoms=", strlen(" NAtoms=")))
         {
-            sscanf(line + strlen(" NAtoms="), "%u", & num_atoms);
-            break;
+            fprintf(stderr, "Error! File \"%s\" may not be a Gaussian output file.\n", in_f_name);
+            exit(EXIT_FAILURE);
         }
+        if (strstr(line, "Gaussian"))
+            break;
     }
 
-    fseek(in_f, 0, SEEK_SET);
+    rewind(in_f);
     final_pos = -1;
     for (;;)
     {
@@ -174,10 +169,10 @@ int main(int argc, char const *argv[])
     {
         fprintf(stderr, "Warning! Cannot find \"%s\" in Gaussian output file.\n", \
             coordinate_determine_mark_temp[index_marker]);
-        index_marker = index_marker + 1 & 1u;
+        index_marker = index_marker + 1u & 1u;
         fprintf(stderr, "Using \"%s\" instead.\n", \
             coordinate_determine_mark_temp[index_marker]);
-        fseek(in_f, 0, SEEK_SET);
+        rewind(in_f);
         strcpy(coordinate_determine_mark, coordinate_determine_mark_temp[index_marker]);
         for (;;)
         {
@@ -195,16 +190,52 @@ int main(int argc, char const *argv[])
         }
     }
 
+    rewind(in_f);
+    for (;;)
+    {
+        if (! fgets(line, BUFSIZ, in_f))
+        {
+            fprintf(stderr, "Error! Cannot get the amount of atoms after \"NAtoms=\".\n");
+            exit(EXIT_FAILURE);
+        }
+        if (strstr(line, "NAtoms="))
+        {
+            sscanf(strstr(line, "NAtoms=") + strlen("NAtoms="), "%u", & num_atoms);
+            break;
+        }
+    }
+
+    if (strcmp(out_f_name, "-"))
+    {
+        out_f = fopen(out_f_name, "wt");
+        if (! out_f)
+        {
+            fprintf(stderr, "Error! Cannot open file \"%s\" for writing.\n", out_f_name);
+            fclose(in_f);
+            in_f = NULL;
+            exit(EXIT_FAILURE);
+        }
+    }
 
     fseek(in_f, final_pos, SEEK_SET);
-    for (i = 0; i < useless_lines; i ++)
-        fgets(line, BUFSIZ, in_f); /* useless */
+    for (i = 0; i != useless_lines; i ++)
+    {
+        if (! fgets(line, BUFSIZ, in_f))
+        {
+            fprintf(stderr, "Error! Cannot find coordinates after \"%s\".\n", coordinate_determine_mark);
+            exit(EXIT_FAILURE);
+        }
+    }
     fprintf(out_f, "%u\n", num_atoms);
     fprintf(out_f, "Generated from %s\n", in_f_name);
 
     for (i = 1; i <= num_atoms; i ++)
     {
-        fgets(line, BUFSIZ, in_f);
+        if (! fgets(line, BUFSIZ, in_f))
+        {
+            fprintf(stderr, "Error! Cannot find coordinates of atom %u.\n", i);
+            exit(EXIT_FAILURE);
+        }
         strtok(line, splitter); /* center number */
         atom_index = 0u;
         sscanf(strtok(NULL, splitter), "%u", & atom_index);
