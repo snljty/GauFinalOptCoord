@@ -10,11 +10,11 @@ all: GauFinalOptCoord.exe
 
 GauFinalOptCoord.exe: GauFinalOptCoord.obj
 	@echo Linking $@ against $^ ...
-	$(CLINKER) -o $@ $^ -static
+	$(CLINKER) -o $@ $^ -static -s
 
 GauFinalOptCoord.obj: GauFinalOptCoord.c
 	@echo Compiling $@ ...
-	$(CC) -o $@ -c $< $(CCFLAGS)
+	$(CC) -o $@ -c $< $(CCFLAGS) -s
 
 .PHONY: clean
 clean: clean_tmp

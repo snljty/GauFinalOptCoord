@@ -141,6 +141,36 @@ int main(int argc, char const *argv[])
             strcpy(out_f_name, in_f_name);
             strcpy(out_f_name + strlen(out_f_name) - strlen(".xyz"), ".xyz");
         }
+        out_f = fopen(out_f_name, "rt");
+        if (out_f)
+        {
+            fclose(out_f);
+            out_f = NULL;
+            fprintf(stderr, "Error! File \"%s\" already exists, overwrites it? y/N\n", out_f_name);
+            for (;;)
+            {
+                if (fgets(line, BUFSIZ, stdin))
+                {
+                    while (line[strlen(line) - 1] == '\n')
+                        line[strlen(line) - 1] = '\0';
+                    if (! (strcmp(line, "Y") && strcmp(line, "y")))
+                        break;
+                }
+                fprintf(stderr, "Aborting.\n");
+                fclose(in_f);
+                in_f = NULL;
+                exit(EXIT_FAILURE);
+                break;
+            }
+        }
+        out_f = fopen(out_f_name, "wt");
+        if (! out_f)
+        {
+            fprintf(stderr, "Error! Cannot open file \"%s\" for writing.\n", out_f_name);
+            fclose(in_f);
+            in_f = NULL;
+            exit(EXIT_FAILURE);
+        }
     }
 
     rewind(in_f);
@@ -202,18 +232,6 @@ int main(int argc, char const *argv[])
         {
             sscanf(strstr(line, "NAtoms=") + strlen("NAtoms="), "%u", & num_atoms);
             break;
-        }
-    }
-
-    if (strcmp(out_f_name, "-"))
-    {
-        out_f = fopen(out_f_name, "wt");
-        if (! out_f)
-        {
-            fprintf(stderr, "Error! Cannot open file \"%s\" for writing.\n", out_f_name);
-            fclose(in_f);
-            in_f = NULL;
-            exit(EXIT_FAILURE);
         }
     }
 
