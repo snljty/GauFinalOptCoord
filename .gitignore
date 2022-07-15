@@ -1,5 +1,5 @@
 # Git Ignore for GauFinalOptCoord
 *.o
 *.obj
-*.x
+# *.x
 Makefile.Linux
