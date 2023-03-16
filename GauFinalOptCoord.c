@@ -260,8 +260,8 @@ int main(int argc, char const *argv[])
     }
 
     rewind(in_f);
-    final_pos = -1ll;
-    last_pos = -1ll;
+    final_pos = 0ll;
+    last_pos = 0ll;
     while (true)
     {
         pos = ftell(in_f);
@@ -275,7 +275,9 @@ int main(int argc, char const *argv[])
             final_pos = pos; /* update final position, may not really be "final". */
         }
     }
-    if (final_pos < 0)
+    printf("last_pos = %zd, final_pos = %zd\n", last_pos, final_pos);
+
+    if (! final_pos)
     {
         fprintf(stderr, "Warning! Cannot find \"%s\" in Gaussian output file.\n", \
             coordinate_determine_mark_temp[index_marker]);
@@ -297,7 +299,7 @@ int main(int argc, char const *argv[])
                 final_pos = pos; /* update final position, may not really be 'final'. */
             }
         }
-        if (final_pos < 0)
+        if (! final_pos)
         {
             fprintf(stderr, "Error! Also cannot find \"%s\" in Gaussian output file.\n", \
                 coordinate_determine_mark_temp[index_marker]);
