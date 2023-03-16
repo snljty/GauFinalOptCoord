@@ -275,7 +275,6 @@ int main(int argc, char const *argv[])
             final_pos = pos; /* update final position, may not really be "final". */
         }
     }
-    printf("last_pos = %zd, final_pos = %zd\n", last_pos, final_pos);
 
     if (! final_pos)
     {
