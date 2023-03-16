@@ -165,11 +165,11 @@ int main(int argc, char const *argv[])
             {
                 if (fgets(line, BUFSIZ, stdin))
                 {
-                    if (line[strlen(line) - 1] == '\n')
+                    if (strlen(line) >= 1 && line[strlen(line) - 1] == '\n')
                     {
                         line[strlen(line) - 1] = '\0';
                     }
-                    if (! (strcmp(line, "Y") || strcmp(line, "y")))
+                    if (! (strcmp(line, "Y") && strcmp(line, "y")))
                     {
                         break;
                     }
