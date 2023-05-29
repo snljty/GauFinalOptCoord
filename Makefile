@@ -3,6 +3,7 @@
 SHELL = cmd
 CC = gcc
 OPTS = -s
+OPTLV = -O2
 CLINKER = $(CC)
 
 .PHONY: all
@@ -14,7 +15,7 @@ GauFinalOptCoord.exe: GauFinalOptCoord.obj
 
 GauFinalOptCoord.obj: GauFinalOptCoord.c
 	@echo Compiling $@ ...
-	$(CC) -o $@ -c $< $(CCFLAGS) $(OPTS)
+	$(CC) -o $@ -c $< $(OPTLV) $(OPTS)
 
 .PHONY: clean
 clean: clean_tmp
